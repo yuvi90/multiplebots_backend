@@ -1,0 +1,222 @@
+https://www.facebook.com/v18.0/dialog/oauth?client_id=587893828647004&redirect_uri=https%3A%2F%2Fwww.uchat.com.au%2Fsettings%2Ffacebook%2Fcallback&scope=email%2Cpages_messaging%2Cpages_show_list%2Cpages_read_engagement%2Cpages_manage_engagement%2Cpages_read_user_content%2Cpages_manage_metadata%2Cpages_manage_posts%2Cinstagram_basic%2Cinstagram_manage_messages%2Cinstagram_manage_comments%2Cpages_manage_ads%2Cleads_retrieval&response_type=code&state=ZBLlmGuPZMofaBkAkQtjgVKU2uREzTt8kQjxrv1a
+
+Notes on the Facebook OAuth URL
+
+1. Base URL
+  https://www.facebook.com/v18.0/dialog/oauth → Facebook’s OAuth 2.0 authentication endpoint.
+  v18.0 → Specifies the API version being used.
+
+2. Query Parameters Explained
+  client_id=587893828647004
+    Represents the Facebook App ID requesting authentication.
+    This app belongs to UChat.
+
+  redirect_uri=https%3A%2F%2Fwww.uchat.com.au%2Fsettings%2Ffacebook%2Fcallback
+    URL where the user is redirected after authentication.
+    https://www.uchat.com.au/settings/facebook/callback
+    
+scope=... (Requested Permissions)
+
+  Facebook Page Permissions:
+    pages_messaging → Send and receive messages.
+    pages_show_list → View the list of managed pages.
+    pages_read_engagement → Read engagement data.
+    pages_manage_engagement → Manage page interactions.
+    pages_read_user_content → Read user-generated content.
+    pages_manage_metadata → Manage page metadata.
+    pages_manage_posts → Create, edit, and delete posts.
+    pages_manage_ads → Manage ads on Facebook pages.
+
+  Instagram Permissions:
+    instagram_basic → Access basic Instagram profile info.
+    instagram_manage_messages → Manage Instagram DMs.
+    instagram_manage_comments → Handle Instagram comments.
+
+  Other Permissions:
+    email → Access the user’s email address.
+    leads_retrieval → Retrieve leads from Facebook Lead Ads.
+        
+  response_type=code
+    The app requests an authorization code (not an access token directly).
+    This code will be exchanged for an access token later.
+
+  state=ZBLlmGuPZMofaBkAkQtjgVKU2uREzTt8kQjxrv1a
+    A random security token used for CSRF protection.
+    Ensures that the request is genuine when redirected back.
+
+3. How It Works (Step-by-Step Process)
+  1. User clicks the link → Redirected to Facebook login page.
+  2. User logs in and grants permissions.
+  3. Facebook redirects back to: https://www.uchat.com.au/settings/facebook/callback?code=AUTH_CODE&state=ZBLlmGuPZMofaBkAkQtjgVKU2uREzTt8kQjxrv1a
+  4. The app exchanges AUTH_CODE for an access token.
+  5. The app can now interact with Facebook and Instagram on behalf of the user.
+
+4. Purpose of This URL
+    Allows UChat to integrate with Facebook & Instagram.
+    Enables chat automation, lead retrieval, and page management.
+    Uses OAuth 2.0 authentication to obtain secure API access.
+
+
+
+
+Scopes Available: 
+[
+    "email",
+    "pages_messaging",
+    "pages_show_list",
+    "pages_read_engagement",
+    "pages_manage_engagement",
+    "pages_read_user_content",
+    "pages_manage_metadata",
+    "pages_manage_posts",
+    "instagram_basic",
+    "instagram_manage_messages",
+    "instagram_manage_comments",
+    "pages_manage_ads",
+    "leads_retrieval"
+]
+
+
+
+
+// Define the FacebookMessengerChannel model
+model facebook_channel_details {
+  id          Int    @id @default(autoincrement())
+  channelId   Int    @unique
+  pageId      String
+  appSecret   String
+  accessToken String
+  // Add other Facebook Messenger channel specific fields as needed
+}
+
+
+
+
+GET: https://graph.facebook.com/v18.0/{facebook_page_id}?fields=instagram_business_account&access_token={ACCESS_TOKEN}
+
+Response:
+{
+  "instagram_business_account": {
+    "id": "321816281562" // Instagram Account ID
+  },
+  "id": "21218762152" // Facebook Page ID
+}
+
+Use 321816281562 to make Instagram Graph API calls (e.g., fetching posts, insights, comments).
+Example API request using the Instagram Business Account ID:
+
+GET https://graph.facebook.com/v18.0/321816281562/media?access_token={ACCESS_TOKEN}
+This retrieves media (posts, reels, etc.) from the Instagram Business Account.
+
+
+
+Facebook/Instagram Webhook Subscription or Graph API request. 
+object=instagram&fields=messages&include_values=true
+
+-->> Webhook Subscription for Instagram Messages
+If used in a webhook setup, this means the system is subscribing to real-time Instagram messages.
+
+Whenever a new direct message (DM) is sent or received on an Instagram Business Account, the webhook will trigger.
+
+Graph API Request to Fetch Messages
+
+If used as a Graph API request, it would be structured like:
+
+GET https://graph.facebook.com/v18.0/{instagram_business_account_id}?fields=messages&access_token={ACCESS_TOKEN}
+
+This would retrieve messages from the Instagram Business Account.
+
+Breaking Down the Parameters
+  object=instagram → Refers to Instagram as the target platform.
+  fields=messages → Requests direct messages (DMs) associated with an Instagram Business Account.
+  include_values=true → If used in a webhook, this ensures that actual message content is included in the webhook response.
+
+Expected Response:
+{
+  "object": "instagram",
+  "entry": [
+    {
+      "id": "321816281562",
+      "messaging": [
+        {
+          "sender": { "id": "123456789" },
+          "recipient": { "id": "321816281562" },
+          "timestamp": 1706867263000,
+          "message": {
+            "mid": "m_ABC123",
+            "text": "Hello, I need help!"
+          }
+        }
+      ]
+    }
+  ]
+}
+  "object": "instagram" confirms that this event is for Instagram.
+  "entry" contains a list of events (e.g., a new message received).
+  "message" includes the actual text sent by the user.
+
+How to Use This?
+  If setting up a webhook, ensure your server is configured to handle Instagram message events.
+  If calling the Graph API, use the Instagram Business Account ID to fetch messages programmatically.
+
+
+
+
+FACEBOOK_APP_ID/subscriptions?object=instagram&fields=messages&include_values=true
+What This Does ?
+  This request is used to subscribe a Facebook App to receive real-time events for Instagram messages. Specifically, it enables the app to listen for incoming direct messages (DMs) on an Instagram Business Account.
+
+Breaking Down the API Request
+  FACEBOOK_APP_ID/subscriptions
+  This targets the subscriptions endpoint of a specific Facebook App.
+  It is used to configure which events the app should listen to.
+
+object=instagram
+  Specifies that the subscription is for Instagram-related events.
+
+fields=messages
+  Requests to receive events for Instagram Direct Messages (DMs).
+
+include_values=true
+  Ensures that the actual message content is included in webhook events.
+
+How This Works ?
+
+Setup Webhook URL in Your App
+
+In Facebook Developer Console, set up a Webhook URL that will receive Instagram message events.
+Make an API Call to Subscribe
+
+A POST request is usually sent to Facebook's API to enable this subscription.
+Example API call:
+POST https://graph.facebook.com/v18.0/{FACEBOOK_APP_ID}/subscriptions
+?object=instagram
+&fields=messages
+&include_values=true
+&access_token={ACCESS_TOKEN}
+
+This registers the app to receive Instagram DM events.
+Receive Webhook Events When a Message is Sent
+
+When a user sends or receives a message on an Instagram Business Account, Facebook sends a real-time webhook event to your server.
+
+Example Webhook Payload:
+{
+  "object": "instagram",
+  "entry": [
+    {
+      "id": "321816281562",
+      "messaging": [
+        {
+          "sender": { "id": "123456789" },
+          "recipient": { "id": "321816281562" },
+          "timestamp": 1706867263000,
+          "message": {
+            "mid": "m_ABC123",
+            "text": "Hello, I need help!"
+          }
+        }
+      ]
+    }
+  ]
+}
