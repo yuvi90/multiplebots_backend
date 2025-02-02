@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login Page</title>
+  <style>
+    form {
+      margin: 20px 0;
+    }
+
+    .notification {
+      display: none;
+    }
+  </style>
+</head>
+
+<body>
+  <h1>Login Page</h1>
+  <a href="/auth/facebook">Login with Facebook</a>
+  <form class="telegram-form" action="">
+    <input type="text" placeholder="Telegram Key">
+    <button>Submit</button>
+  </form>
+  <form class="line-form" action="">
+    <input type="text" placeholder="Line Channel ID">
+    <input type="text" placeholder="Line Channel Secret">
+    <input type="text" placeholder="Line Channel Access Token">
+    <button>Submit</button>
+  </form>
+
+  <div class="notification"></div>
+
+  <script>
+    const telegramForm = document.querySelector(".telegram-form");
+    telegramForm.addEventListener("submit", (event) => {
+      event.preventDefault();
+      if (!telegramForm.querySelector("input").value) return;
+      const telegramKey = telegramForm.querySelector("input").value;
+
+      fetch('/telegram/set-webhook', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          apiToken: telegramKey
+        })
+      })
+        .then(response => response.json())
+        .then(data => {
+          console.log(data);
+          if (data.status) {
+            document.querySelector(".notification").style.display = "block";
+            document.querySelector(".notification").innerHTML = data.message;
+          } else {
+            document.querySelector(".notification").style.display = "block";
+            document.querySelector(".notification").innerHTML = data.message;
+          }
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          document.querySelector(".notification").style.display = "block";
+          document.querySelector(".notification").innerHTML = error.message;
+        });
+    });
+
+    const lineForm = document.querySelector(".line-form");
+    lineForm.addEventListener("submit", (event) => {
+      event.preventDefault();
+      if (!lineForm.querySelector("input:nth-child(1)").value || !lineForm.querySelector("input:nth-child(2)").value || !lineForm.querySelector("input:nth-child(3)").value) return;
+      const channelId = lineForm.querySelector("input:nth-child(1)").value;
+      const channelSecret = lineForm.querySelector("input:nth-child(2)").value;
+      const channelAccessToken = lineForm.querySelector("input:nth-child(3)").value;
+      fetch('/line/set-webhook', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          channelId,
+          channelSecret,
+          channelAccessToken
+        })
+      })
+        .then(response => response.json())
+        .then(data => {
+          console.log(data);
+          if (data.status) {
+            document.querySelector(".notification").style.display = "block";
+            document.querySelector(".notification").innerHTML = data.message;
+          } else {
+            document.querySelector(".notification").style.display = "block";
+            document.querySelector(".notification").innerHTML = data.message;
+          }
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          document.querySelector(".notification").style.display = "block";
+          document.querySelector(".notification").innerHTML = error.message;
+        });
+    });
+  </script>
+</body>
+
+</html>

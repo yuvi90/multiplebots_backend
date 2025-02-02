@@ -6,3 +6,67 @@ datasource db {
   provider = "sqlite"
   url      = env("DATABASE_URL")
 }
+
+model users {
+  id            Int             @id @default(autoincrement())
+  email         String          @unique
+  password      String
+  user_channels user_channels[]
+}
+
+model channels {
+  id            Int             @id @default(autoincrement())
+  type          String          @unique
+  user_channels user_channels[]
+}
+
+model user_channels {
+  id                         Int                         @id @default(autoincrement())
+  user                       users                       @relation(fields: [user_id], references: [id])
+  channel                    channels                    @relation(fields: [channel_id], references: [id])
+  user_id                    Int
+  channel_id                 Int
+  facebook_channels_details  facebook_channel_details[]
+  instagram_channels_details instagram_channel_details[]
+  telegram_channel_details   telegram_channel_details[]
+  line_channel_details       line_channel_details[]
+
+  @@unique([user_id, channel_id])
+}
+
+model facebook_channel_details {
+  id                Int           @id @default(autoincrement())
+  user_channel      user_channels @relation(fields: [user_channel_id], references: [id])
+  user_channel_id   Int           @unique
+  profile_id        String?
+  full_name         String?
+  access_token      String?
+  page_id           String?
+  page_access_token String?
+}
+
+model instagram_channel_details {
+  id              Int           @id @default(autoincrement())
+  user_channel    user_channels @relation(fields: [user_channel_id], references: [id])
+  user_channel_id Int           @unique
+  profile_id      String?
+  full_name       String?
+  access_token    String?
+  insta_user_id   String?
+}
+
+model telegram_channel_details {
+  id              Int           @id @default(autoincrement())
+  user_channel    user_channels @relation(fields: [user_channel_id], references: [id])
+  user_channel_id Int           @unique
+  api_token       String?
+}
+
+model line_channel_details {
+  id                   Int           @id @default(autoincrement())
+  user_channel         user_channels @relation(fields: [user_channel_id], references: [id])
+  user_channel_id      Int           @unique
+  channel_id           String?
+  channel_secret       String?
+  channel_access_token String?
+}

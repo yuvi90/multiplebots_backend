@@ -131,3 +131,7 @@ dist
 
 # Manual Entry
 dev.db
+notes.txt
+test.js
+**/**/.DS_Store
+.vscode/
